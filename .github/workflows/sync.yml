@@ -1,0 +1,26 @@
+name: Sync prints archive
+on:
+  schedule:
+    - cron: '23 4 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Sync archive
+        run: |
+          curl -fsSL https://prints.wtf/archive/sync.mjs -o /tmp/sync.mjs
+          node /tmp/sync.mjs https://prints.wtf/archive/ .
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "Sync prints archive"
+          git push
